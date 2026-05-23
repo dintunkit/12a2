@@ -1,0 +1,15 @@
+# Loại ảnh gốc — quá lớn (42GB), chỉ dùng thumbnail
+photos/
+
+# Script phụ
+make_thumbs.py
+build_manifest.py
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
