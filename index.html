@@ -119,12 +119,12 @@
     #lb.on { opacity: 1; pointer-events: all; }
     .lb-inner { position: relative; max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; align-items: center; }
     #lb-img { max-width: 90vw; max-height: 78vh; object-fit: contain; border-radius: 10px; box-shadow: 0 40px 100px rgba(0,0,0,.8); transition: opacity .2s ease; }
-    .lb-top { position: absolute; top: -48px; left: 0; right: 0; display: flex; align-items: center; gap: 1rem; }
+    .lb-top { position: fixed; top: 1.5rem; left: 1.5rem; right: 1.5rem; display: flex; align-items: center; gap: 1rem; z-index: 1010; }
     .lb-cnt { font-size: .76rem; color: var(--muted); white-space: nowrap; }
     .lb-bar { flex: 1; height: 2px; background: rgba(255,255,255,.08); border-radius: 2px; }
     .lb-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .2s; }
-    .lb-x { background: none; border: none; color: var(--muted); font-size: 1.8rem; cursor: pointer; line-height: 1; transition: color .25s,transform .25s; padding: 0; }
-    .lb-x:hover { color: var(--gold); transform: rotate(90deg); }
+    .lb-x { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 50%; color: var(--text); font-size: 1.1rem; cursor: pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; transition: background 0.25s, transform 0.25s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .lb-x:hover { background: rgba(201,168,76,0.3); color: var(--gold); transform: scale(1.05); }
     .lb-info { margin-top: .9rem; text-align: center; }
     .lb-name { font-size: .95rem; color: var(--gold); font-weight: 600; }
     .lb-sub  { font-size: .73rem; color: var(--muted); margin-top: 2px; }
