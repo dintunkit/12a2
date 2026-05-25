@@ -480,9 +480,9 @@ function handleDownload(event, name, drive, driveFileId) {
   if (driveFileId) {
     event.preventDefault();
     event.stopPropagation();
-    showToast(`Đang mở liên kết tải ảnh gốc từ Google Drive...`);
+    showToast(`Đang tải trực tiếp ảnh gốc về thiết bị...`);
     setTimeout(() => {
-      window.open(`https://drive.google.com/file/d/${driveFileId}/view?usp=drivesdk`, '_blank');
+      window.open(`https://drive.google.com/uc?export=download&id=${driveFileId}`, '_blank');
     }, 850);
   } else if (drive && DRIVE_URLS[drive]) {
     event.preventDefault();
