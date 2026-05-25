@@ -321,11 +321,12 @@ async function init(){
   }
 
   all = manifest.map((m,i)=>{
-    const parts = (m.orig||m).split('/');
+    const normalizedOrig = (m.orig || m).replace(/\\/g, '/');
+    const normalizedThumb = (m.thumb || m.orig || m).replace(/\\/g, '/');
+    const parts = normalizedOrig.split('/');
     const name  = parts[parts.length-1];
-    // Use thumb path; fall back to orig if no thumb entry
-    const thumbSrc = THUMBS_DIR + (m.thumb || m.orig || m);
-    const origSrc  = PHOTOS_DIR + (m.orig  || m);
+    const thumbSrc = THUMBS_DIR + normalizedThumb;
+    const origSrc  = PHOTOS_DIR + normalizedOrig;
     return {thumb: thumbSrc, orig: origSrc, name, index: i, drive: m.drive};
   });
 
@@ -433,8 +434,9 @@ function showLB(){
   const p = filtered[lbIdx];
   lbImg.style.opacity='0';
   setTimeout(()=>{
-    // Load full-resolution original in lightbox
-    lbImg.src = p.orig;
+    // Load full-resolution original in lightbox if running locally, otherwise use thumb
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    lbImg.src = isLocal ? p.orig : p.thumb;
     lbImg.alt = p.name;
     const n = p.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
     document.getElementById('lb-name').textContent = n;
