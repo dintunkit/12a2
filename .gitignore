@@ -21,3 +21,6 @@ Drive_3/
 
 # Large ZIP files
 *.zip
+
+# Local Google Drive file ID lists
+drive_file_ids*.json

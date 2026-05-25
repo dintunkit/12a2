@@ -327,7 +327,7 @@ async function init(){
     const name  = parts[parts.length-1];
     const thumbSrc = THUMBS_DIR + normalizedThumb;
     const origSrc  = PHOTOS_DIR + normalizedOrig;
-    return {thumb: thumbSrc, orig: origSrc, name, index: i, drive: m.drive};
+    return {thumb: thumbSrc, orig: origSrc, name, index: i, drive: m.drive, driveFileId: m.driveFileId};
   });
 
   document.getElementById('h-total').textContent = all.length.toLocaleString('vi');
@@ -399,7 +399,7 @@ function buildCard(photo, idx){
           <button class="obtn open-btn" data-idx="${idx}">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Xem
           </button>
-          <a class="obtn" href="${photo.orig}" download="${photo.name}" onclick="handleDownload(event, '${photo.name}', ${photo.drive})">
+          <a class="obtn" href="${photo.orig}" download="${photo.name}" onclick="handleDownload(event, '${photo.name}', ${photo.drive}, ${photo.driveFileId ? `'${photo.driveFileId}'` : 'null'})">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Tải
           </a>
         </div>
@@ -454,7 +454,7 @@ document.getElementById('lb-next').addEventListener('click',()=>{ lbIdx=(lbIdx+1
 lb.addEventListener('click',e=>{ if(e.target===lb) closeLB(); });
 document.getElementById('lb-dl').addEventListener('click', e => {
   const p = filtered[lbIdx];
-  handleDownload(e, p.name, p.drive);
+  handleDownload(e, p.name, p.drive, p.driveFileId);
 });
 
 function showToast(message) {
@@ -476,8 +476,15 @@ function showToast(message) {
   }, 4000);
 }
 
-function handleDownload(event, name, drive) {
-  if (drive && DRIVE_URLS[drive]) {
+function handleDownload(event, name, drive, driveFileId) {
+  if (driveFileId) {
+    event.preventDefault();
+    event.stopPropagation();
+    showToast(`Đang mở liên kết tải ảnh gốc từ Google Drive...`);
+    setTimeout(() => {
+      window.open(`https://drive.google.com/file/d/${driveFileId}/view?usp=drivesdk`, '_blank');
+    }, 850);
+  } else if (drive && DRIVE_URLS[drive]) {
     event.preventDefault();
     event.stopPropagation();
     navigator.clipboard.writeText(name).then(() => {
