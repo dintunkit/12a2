@@ -144,8 +144,61 @@
     @keyframes spin     { to{transform:rotate(360deg)} }
     @keyframes shimmer  { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
 
+    /* TOAST NOTIFICATION */
+    #toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: 350px;
+    }
+    .toast {
+      background: rgba(19, 19, 28, 0.95);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(30px);
+      opacity: 0;
+      transition: transform 0.4s var(--ease), opacity 0.4s var(--ease);
+      pointer-events: auto;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .toast-icon {
+      color: var(--gold);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+    .toast-msg {
+      line-height: 1.4;
+    }
+
     @media(max-width:768px){ #gallery{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.65rem} #lb-prev{left:-36px} #lb-next{right:-36px} }
-    @media(max-width:480px){ #gallery{grid-template-columns:1fr 1fr;gap:.5rem} #lb-prev,#lb-next{display:none} }
+    @media(max-width:480px){
+      #gallery{grid-template-columns:1fr 1fr;gap:.5rem} #lb-prev,#lb-next{display:none}
+      #toast-container {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        left: 1.5rem;
+        max-width: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -231,6 +284,12 @@ const THUMBS_DIR  = './thumbs/';
 const PHOTOS_DIR  = './photos/';
 const BATCH       = 40;
 
+const DRIVE_URLS = {
+  1: "https://drive.google.com/drive/folders/1EGHOBGovVOjLyGLZK32DrFN50bnuzxQV?usp=drive_link",
+  2: "https://drive.google.com/drive/folders/102ABKWk0BNfC4dNJWhZMG4U2so6sq8Or?usp=drive_link",
+  3: "https://drive.google.com/drive/folders/1hITZShZeOmwb-7VO3XCf06mAdXVaq-Nb?usp=drive_link"
+};
+
 let all=[], filtered=[], rendered=0, lbIdx=0;
 let cardObs, imgObs, sentinelObs;
 
@@ -267,7 +326,7 @@ async function init(){
     // Use thumb path; fall back to orig if no thumb entry
     const thumbSrc = THUMBS_DIR + (m.thumb || m.orig || m);
     const origSrc  = PHOTOS_DIR + (m.orig  || m);
-    return {thumb: thumbSrc, orig: origSrc, name, index: i};
+    return {thumb: thumbSrc, orig: origSrc, name, index: i, drive: m.drive};
   });
 
   document.getElementById('h-total').textContent = all.length.toLocaleString('vi');
@@ -339,7 +398,7 @@ function buildCard(photo, idx){
           <button class="obtn open-btn" data-idx="${idx}">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Xem
           </button>
-          <a class="obtn" href="${photo.orig}" download="${photo.name}" onclick="event.stopPropagation()">
+          <a class="obtn" href="${photo.orig}" download="${photo.name}" onclick="handleDownload(event, '${photo.name}', ${photo.drive})">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Tải
           </a>
         </div>
@@ -391,6 +450,44 @@ document.getElementById('lb-x').addEventListener('click',closeLB);
 document.getElementById('lb-prev').addEventListener('click',()=>{ lbIdx=(lbIdx-1+filtered.length)%filtered.length; showLB(); });
 document.getElementById('lb-next').addEventListener('click',()=>{ lbIdx=(lbIdx+1)%filtered.length; showLB(); });
 lb.addEventListener('click',e=>{ if(e.target===lb) closeLB(); });
+document.getElementById('lb-dl').addEventListener('click', e => {
+  const p = filtered[lbIdx];
+  handleDownload(e, p.name, p.drive);
+});
+
+function showToast(message) {
+  const container = document.getElementById('toast-container') || (() => {
+    const c = document.createElement('div');
+    c.id = 'toast-container';
+    document.body.appendChild(c);
+    return c;
+  })();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  const icon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 50);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
+}
+
+function handleDownload(event, name, drive) {
+  if (drive && DRIVE_URLS[drive]) {
+    event.preventDefault();
+    event.stopPropagation();
+    navigator.clipboard.writeText(name).then(() => {
+      showToast(`Đã sao chép: "<b>${name}</b>". Đang mở Google Drive ${drive} để tải ảnh gốc...`);
+    }).catch(() => {
+      showToast(`Đang mở Google Drive ${drive} để tải ảnh gốc...`);
+    });
+    setTimeout(() => {
+      window.open(DRIVE_URLS[drive], '_blank');
+    }, 1500);
+  }
+}
 document.addEventListener('keydown',e=>{
   if(!lb.classList.contains('on')) return;
   if(e.key==='Escape') closeLB();

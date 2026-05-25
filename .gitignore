@@ -13,3 +13,11 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Drive folders (stored in Google Drive)
+Drive_1/
+Drive_2/
+Drive_3/
+
+# Large ZIP files
+*.zip
